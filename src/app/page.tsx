@@ -15,7 +15,7 @@ export default function Home() {
   const { openFilePicker, filesContent, plainFiles, loading } = useFilePicker({
     accept: '.mp4',
     onFilesSuccessfullySelected: ({ filesContent, plainFiles}: {filesContent: any, plainFiles: File[]}) => {
-      console.log('onFilesSucess: ', plainFiles)     ;
+      console.log('onFilesSucess: ', filesContent);
     },
     onFilesSelected: () => {
       setDialog(true);

@@ -1,7 +1,5 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
-import { styled } from '@mui/material/styles';
-import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -10,37 +8,18 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { dialogAtom } from '../state/atoms';
 import { useAtom } from 'jotai';
-import VideoData from './VideoData';
 import { getMetadata, getThumbnails } from 'video-metadata-thumbnails';
 import { useEffect, useRef, useState } from 'react';
 import MultiRangeSlider, { ChangeResult } from 'multi-range-slider-react';
 import { IThumbnail } from 'video-metadata-thumbnails/lib/video/ithumbnail';
-import Image from 'next/image';
-import ReactPlayer from 'react-player';
-
-export type Thumbnails = Thumbnail[]
-
-export interface Thumbnail {
-  currentTime: number
-  blob: Blob
-}
+import { BootstrapDialog } from './Dialog';
 
 
-const BootstrapDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialogContent-root': {
-    padding: theme.spacing(2),
-  },
-  '& .MuiDialogActions-root': {
-    padding: theme.spacing(1),
-  },
-}));
-
-export default function CustomizedDialogs({ files }: {files: File[]}) {
+export default function CustomizedDialogs({ files }: { files: File[]; }) {
   const [loading, setLoading] = useState(true);
-  const [imgs, setImgs] = useState<string[]>([])
-  const thumb = useRef<IThumbnail[]>([])
-  const range = useRef<{start: number, end: number}>({start: 0, end: 0});
-  const [meta, setMeta] = useState<{duration: number, height: number, width: number}|null>(null);  
+  const thumb = useRef<IThumbnail[]>([]);
+  const range = useRef<{ start: number; end: number; }>({ start: 0, end: 0 });
+  const [meta, setMeta] = useState<{ duration: number; height: number; width: number; } | null>(null);
   const [open, setOpen] = useAtom(dialogAtom);
   const handleClickOpen = () => {
     setOpen(true);
@@ -49,28 +28,21 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
     setOpen(false);
   };
   const handleInput = (e: ChangeResult) => {
-      range.current = {start: e.min, end: e.max};
-  }
+    range.current = { start: e.min, end: e.max };
+  };
 
-  useEffect(() => {  
+  useEffect(() => {
     getMetadata(files[0]).then((r => {
-      setMeta(r)
-      range.current = {start: 0, end: r.duration}
+      setMeta(r);
+      range.current = { start: 0, end: r.duration };
       console.log(r);
     }));
-    getThumbnails(files[0], {start: 0, quality: 0.5}).then((r) => {
+    getThumbnails(files[0], { start: 0, quality: 0.5 }).then((r) => {
       console.log(r);
-      thumb.current = [...r];
-      let imgs: string[] = [];
-      for (let i=0; i<r.length; i++) {
-        let img = URL.createObjectURL(r[i].blob!);
-        //console.log(img);
-        imgs.push(img);
-      }
-      setImgs(imgs);
       setLoading(false);
+      thumb.current = [...r];
     });
-  }, [])
+  }, []);
 
   return (
     <React.Fragment>
@@ -98,9 +70,13 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
         </IconButton>
         <DialogContent dividers>
           {loading && <p>loading</p>}
-          {!loading && 
+          {!loading &&
             <>
-              <ReactPlayer url={files[0].name} />
+              <Typography>
+                {files[0].name}
+              </Typography>
+              {thumb.current.length}
+              <NextImage src={thumb.current[0].blob} />
               <Typography>
                 {meta &&
                   <MultiRangeSlider
@@ -114,17 +90,13 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
                       handleInput(e);
                     }}
                     onChange={(e: ChangeResult) => {
-                      range.current = {start: e.min, end: e.max}                  
-                    }}
-
-                    />
-                }
+                      range.current = { start: e.min, end: e.max };
+                    }} />}
               </Typography>
               <Typography>
-            
+
               </Typography>
-            </>
-          }
+            </>}
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
