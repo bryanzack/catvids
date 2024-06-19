@@ -10,6 +10,18 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { dialogAtom } from '../state/atoms';
 import { useAtom } from 'jotai';
+import VideoData from './VideoData';
+import { getMetadata, getThumbnails } from 'video-metadata-thumbnails';
+import { useEffect, useRef, useState } from 'react';
+import MultiRangeSlider, { ChangeResult } from 'multi-range-slider-react';
+
+export type Thumbnails = Thumbnail[]
+
+export interface Thumbnail {
+  currentTime: number
+  blob: Blob
+}
+
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
@@ -21,14 +33,30 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 export default function CustomizedDialogs({ files }: {files: File[]}) {
+  const thumb = useRef<Thumbnails>(null);
+  const range = useRef<{start: number, end: number}>({start: 0, end: 0});
+  const [meta, setMeta] = useState<{duration: number, height: number, width: number}|null>(null);  
   const [open, setOpen] = useAtom(dialogAtom);
-
   const handleClickOpen = () => {
     setOpen(true);
   };
   const handleClose = () => {
     setOpen(false);
   };
+  const handleInput = (e: ChangeResult) => {
+      range.current = {start: e.min, end: e.max};
+  }
+
+  useEffect(() => {
+    getMetadata(files[0]).then((r => {
+      setMeta(r)
+      range.current = {start: 0, end: r.duration}
+      console.log(r);
+    }));
+    getThumbnails(files[0], {start: 0, quality: 0.5}).then((r) => {
+      console.log(r) 
+    });
+  }, [])
 
   return (
     <React.Fragment>
@@ -55,7 +83,32 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
           <CloseIcon />
         </IconButton>
         <DialogContent dividers>
+          <Typography>
+            {files[0].name}
+          </Typography>
+          <Typography>
+            {meta &&
+              <MultiRangeSlider
+                min={0}
+                max={meta.duration}
+                step={0.1}
+                minValue={0}
+                maxValue={meta.duration}
+                ruler={false}
+                onInput={(e: ChangeResult) => {
+                  handleInput(e);
+                }}
+                onChange={(e: ChangeResult) => {
+                  range.current = {start: e.min, end: e.max}
+                  
+                }}
+
+                 />
+            }
+          </Typography>
+          <Typography>
         
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
