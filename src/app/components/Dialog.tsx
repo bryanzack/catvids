@@ -36,6 +36,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 export default function CustomizedDialogs({ files }: {files: File[]}) {
+  const url = URL.createObjectURL(files[0])
   const [loading, setLoading] = useState(true);
   const [imgs, setImgs] = useState<string[]>([])
   const thumb = useRef<IThumbnail[]>([])
@@ -59,15 +60,6 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
       console.log(r);
     }));
     getThumbnails(files[0], {start: 0, quality: 0.5}).then((r) => {
-      console.log(r);
-      thumb.current = [...r];
-      let imgs: string[] = [];
-      for (let i=0; i<r.length; i++) {
-        let img = URL.createObjectURL(r[i].blob!);
-        //console.log(img);
-        imgs.push(img);
-      }
-      setImgs(imgs);
       setLoading(false);
     });
   }, [])
@@ -99,8 +91,13 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
         <DialogContent dividers>
           {loading && <p>loading</p>}
           {!loading && 
-            <>
-              <ReactPlayer url={files[0].name} />
+            <div>
+              <div className='flex flex-col items-center justify-center'>
+                <ReactPlayer 
+                  url={url} 
+                  
+                  />
+              </div>
               <Typography>
                 {meta &&
                   <MultiRangeSlider
@@ -123,7 +120,7 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
               <Typography>
             
               </Typography>
-            </>
+            </div>
           }
         </DialogContent>
         <DialogActions>
