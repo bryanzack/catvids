@@ -17,6 +17,7 @@ import MultiRangeSlider, { ChangeResult } from 'multi-range-slider-react';
 import { IThumbnail } from 'video-metadata-thumbnails/lib/video/ithumbnail';
 import Image from 'next/image';
 import ReactPlayer from 'react-player';
+import Player from './Player';
 
 export type Thumbnails = Thumbnail[]
 
@@ -36,13 +37,17 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 export default function CustomizedDialogs({ files }: {files: File[]}) {
+  const playerRef = useRef<ReactPlayer>(null);
   const url = URL.createObjectURL(files[0])
   const [loading, setLoading] = useState(true);
-  const [imgs, setImgs] = useState<string[]>([])
-  const thumb = useRef<IThumbnail[]>([])
   const range = useRef<{start: number, end: number}>({start: 0, end: 0});
   const [meta, setMeta] = useState<{duration: number, height: number, width: number}|null>(null);  
   const [open, setOpen] = useAtom(dialogAtom);
+  const handleSeekTo = (timeInSeconds: number) => {
+    if (playerRef.current) {
+      playerRef.current.seekTo(timeInSeconds, 'seconds');
+    }
+  }
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -93,9 +98,9 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
           {!loading && 
             <div>
               <div className='flex flex-col items-center justify-center'>
-                <ReactPlayer 
-                  url={url} 
-                  
+                <ReactPlayer
+                  url={url}
+                  ref={playerRef}
                   />
               </div>
               <Typography>
@@ -106,12 +111,15 @@ export default function CustomizedDialogs({ files }: {files: File[]}) {
                     step={0.1}
                     minValue={0}
                     maxValue={meta.duration}
-                    ruler={false}
+                    ruler={false} 
                     onInput={(e: ChangeResult) => {
                       handleInput(e);
+                      console.log(`e.minVal: ${e.minValue}`)
+                      console.log(`e.maxVal: ${e.maxValue}`)
+                      handleSeekTo(e.maxValue || e.minValue)
                     }}
                     onChange={(e: ChangeResult) => {
-                      range.current = {start: e.min, end: e.max}                  
+                      range.current = {start: e.min, end: e.max}
                     }}
 
                     />
